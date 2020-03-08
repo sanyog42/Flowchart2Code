@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<node>
+	<type>terminator</type>
+	<id>1</id>
+	<text>START</text>
+</node>
+
+<node>
+	<type>data</type>
+	<id>2</id>
+	<text>int n</text>
+	<down>1</down>
+</node>
+
+<node>
+	<type>data</type>
+	<id>3</id>
+	<text>int fact=1</text>
+	<down>2</down>
+</node>
+
+<node>
+	<type>process</type>
+	<id>4</id>
+	<text>INPUT n</text>
+	<down>3</down>
+</node>
+
+<node>
+	<type>decision</type>
+	<id>5</id>
+	<text>n>0</text>
+	<down>4</down>
+</node>
+
+<node>
+	<type>process</type>
+	<id>6</id>
+	<text>OUTPUT fact</text>
+	<right>5</right>
+</node>
+
+<node>
+	<type>data</type>
+	<id>7</id>
+	<text>fact=fact*n</text>
+	<down>5</down>
+</node>
+
+<node>
+	<type>data</type>
+	<id>8</id>
+	<text>n=n-1</text>
+	<down>7</down>
+	<loop>5</loop>
+</node>
