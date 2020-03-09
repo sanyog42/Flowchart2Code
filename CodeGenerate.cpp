@@ -221,7 +221,7 @@ void CodeGenerate::traverse_c(struct node* temp, int level) {
 				traverse_c(temp->right, level);
 			}
 		}
-		else {
+		else if (loopflag == 0) {
 			if (temp->down != NULL) {
 				traverse_c(temp->down, level + 1);
 				for (int i = 0; i < level; i++) {
@@ -231,6 +231,26 @@ void CodeGenerate::traverse_c(struct node* temp, int level) {
 			}
 			if (temp->right != NULL) {
 				traverse_c(temp->right, level);
+			}
+		}
+		else {
+			if (temp->down != NULL) {
+				traverse_c(temp->down, level + 1);
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "}\n";
+			}
+			if (temp->right != NULL) {
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "else {\n";
+				traverse_c(temp->right, level + 1);
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "}\n";
 			}
 		}
 	}
@@ -336,7 +356,7 @@ void CodeGenerate::traverse_cpp(struct node* temp, int level) {
 				traverse_cpp(temp->right, level);
 			}
 		}
-		else {
+		else if (loopflag == 0) {
 			if (temp->down != NULL) {
 				traverse_cpp(temp->down, level + 1);
 				for (int i = 0; i < level; i++) {
@@ -346,6 +366,26 @@ void CodeGenerate::traverse_cpp(struct node* temp, int level) {
 			}
 			if (temp->right != NULL) {
 				traverse_cpp(temp->right, level);
+			}
+		}
+		else {
+			if (temp->down != NULL) {
+				traverse_cpp(temp->down, level + 1);
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "}\n";
+			}
+			if (temp->right != NULL) {
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "else {\n";
+				traverse_cpp(temp->right, level + 1);
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "}\n";
 			}
 		}
 	}
@@ -401,10 +441,10 @@ void CodeGenerate::traverse_py(struct node* temp, int level) {
 		std::string word;
 		while (str >> word) {
 			if (word == "OUTPUT") {
-				code << "print(\"";
+				code << "print(";
 			}
 			else if (word == "INPUT") {
-				code << "input(\"";
+				code << "input(";
 			}
 			else {
 				code << word << "\")";
