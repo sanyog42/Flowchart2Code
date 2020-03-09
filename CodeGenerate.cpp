@@ -487,15 +487,43 @@ void CodeGenerate::traverse_py(struct node* temp, int level) {
 	else if (temp->type == 4) {
 		std::stringstream str(temp->text);
 		std::string word;
+		int type = -1;
+		int vartype = 0;
 		while (str >> word) {
 			if (word == "OUTPUT") {
 				code << "print(";
+				type = 0;
 			}
 			else if (word == "INPUT") {
-				code << "input(";
+				type = 1;
 			}
 			else {
-				code << word << ")";
+				if (type == 0) {
+					code << word << ")";
+				}
+				else if (type == 1) {
+					code << word << " = ";
+					for (int i = 0; i < variables.size(); i++) {
+						if (word == variables[i].first) {
+							vartype = variables[i].second;
+						}
+					}
+					if (vartype == 1) {
+						code << "int(input())";
+					}
+					else if (vartype == 2) {
+						code << "chr(input())";
+					}
+					else if (vartype == 3) {
+						code << "str(input())";
+					}
+					else if (vartype == 4) {
+						code << "float(input())";
+					}
+					else {
+						code << "input()";
+					}
+				}
 			}
 		}
 	}
