@@ -401,6 +401,7 @@ void CodeGenerate::traverse_cpp(struct node* temp, int level) {
 
 void CodeGenerate::traverse_py(struct node* temp, int level) {
 	int loopflag = -1;
+	int nl = 1;
 	for (int i = 0; i < loops.size(); i++) {
 		if (loops[i].second == temp->id && used[i] == 0) {
 			if (temp->type == 5) {
@@ -429,7 +430,54 @@ void CodeGenerate::traverse_py(struct node* temp, int level) {
 		code << "\t";
 	}
 	if (temp->type == 6) {
-		code << temp->text;
+		std::stringstream var(temp->text);
+		std::string word;
+		std::string out = "";
+		std::string varname = "";
+		int vartype = 0;
+		int flag = 0;
+		int outflag = 0;
+		while (var >> word) {
+			if (word == "int") {
+				vartype = 1;
+				flag = 1;
+			}
+			else if (word == "char") {
+				vartype = 2;
+				flag = 1;
+			}
+			else if (word == "string") {
+				vartype = 3;
+				flag = 1;
+			}
+			else if (word == "float") {
+				vartype = 4;
+				flag = 1;
+			}
+			else {
+				for (int i = 0; word[i] != '\0'; i++) {
+					if (word[i] == '=') {
+						outflag = 1;
+					}
+					if (outflag == 0) {
+						varname += word[i];
+					}
+					out += word[i];
+				}
+			}
+		}
+		if (flag == 1) {
+			std::pair<std::string, int> varinf;
+			varinf.first = varname;
+			varinf.second = vartype;
+			variables.push_back(varinf);
+		}
+		if (outflag == 1) {
+			code << out;
+		}
+		else {
+			nl = 0;
+		}
 	}
 	else if (temp->type == 7) {
 		if (temp->text == "END" && level > 0) {
@@ -447,7 +495,7 @@ void CodeGenerate::traverse_py(struct node* temp, int level) {
 				code << "input(";
 			}
 			else {
-				code << word << "\")";
+				code << word << ")";
 			}
 		}
 	}
@@ -476,7 +524,7 @@ void CodeGenerate::traverse_py(struct node* temp, int level) {
 			level--;
 		}
 	}
-	if (temp->type != 7) {
+	if (temp->type != 7 && nl == 1) {
 		code << "\n";
 	}
 	if (temp->type == 5) {
@@ -488,12 +536,24 @@ void CodeGenerate::traverse_py(struct node* temp, int level) {
 				traverse_py(temp->right, level);
 			}
 		}
-		else {
+		else if (loopflag == 0) {
 			if (temp->down != NULL) {
 				traverse_py(temp->down, level + 1);
 			}
 			if (temp->right != NULL) {
 				traverse_py(temp->right, level);
+			}
+		}
+		else {
+			if (temp->down != NULL) {
+				traverse_py(temp->down, level + 1);
+			}
+			if (temp->right != NULL) {
+				for (int i = 0; i < level; i++) {
+					code << "\t";
+				}
+				code << "else :\n";
+				traverse_py(temp->right, level + 1);
 			}
 		}
 	}
