@@ -12,7 +12,7 @@ public:
 	wxFileDialog* code;
 	wxRadioBox* inputbox;
 	wxRadioBox* langbox;
-	int lang_sel, inp_sel;
+	int lang_sel = 0, inp_sel = 0;
 	wxString filepath;
 	wxString codepath;
 
