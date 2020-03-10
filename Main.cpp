@@ -121,6 +121,7 @@ void Main::OnChooseCode(wxCommandEvent& evt) {
 
 void Main::OnInputbox(wxCommandEvent& evt) {
     Main::inp_sel = inputbox->GetSelection();
+    Main::file->SetPath("");
     if (Main::inp_sel == 0) {
         Main::file->SetWildcard("JPG files (*.jpg)|*.jpg");
     }
@@ -132,6 +133,7 @@ void Main::OnInputbox(wxCommandEvent& evt) {
 
 void Main::OnLangbox(wxCommandEvent& evt) {
     Main::lang_sel = langbox->GetSelection();
+    Main::code->SetPath("");
     if (Main::lang_sel == 0) {
         Main::code->SetWildcard("C files (*.c)|*.c");
     }
