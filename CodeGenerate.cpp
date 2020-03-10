@@ -1,6 +1,7 @@
 #include "CodeGenerate.h"
 
 CodeGenerate::CodeGenerate(wxString codepath, node* start, int lang_sel) {
+	first = start;
 	std::string path = std::string(codepath.mb_str());
 	code.open(path, std::ios::out | std::ios::trunc);
 
@@ -112,11 +113,14 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 	else {
 		for (int i = 0; i < loops.size(); i++) {
 			if (loops[i].second == temp->id && used[i] == 0) {
-				if (temp->type == 5) {
+				node* x = nodebyid(first, loops[i].first);
+				if (temp->type == 5 && x->type != 5) {
 					loopflag = 0;
 				}
 				else {
-					loopflag = 1;
+					if (temp->type != 5) {
+						loopflag = 1;
+					}
 					for (int i = 0; i < level; i++) {
 						code << "\t";
 					}
@@ -375,11 +379,14 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 	else {
 		for (int i = 0; i < loops.size(); i++) {
 			if (loops[i].second == temp->id && used[i] == 0) {
-				if (temp->type == 5) {
+				node* x = nodebyid(first, loops[i].first);
+				if (temp->type == 5 && x->type != 5) {
 					loopflag = 0;
 				}
 				else {
-					loopflag = 1;
+					if (temp->type != 5) {
+						loopflag = 1;
+					}
 					for (int i = 0; i < level; i++) {
 						code << "\t";
 					}
@@ -575,11 +582,14 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 	else {
 		for (int i = 0; i < loops.size(); i++) {
 			if (loops[i].second == temp->id && used[i] == 0) {
-				if (temp->type == 5) {
+				node* x = nodebyid(first, loops[i].first);
+				if (temp->type == 5 && x->type != 5) {
 					loopflag = 0;
 				}
 				else {
-					loopflag = 1;
+					if (temp->type != 5) {
+						loopflag = 1;
+					}
 					for (int i = 0; i < level; i++) {
 						code << "\t";
 					}
@@ -782,4 +792,18 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 		}
 	}
 	return run;
+}
+
+struct node* CodeGenerate::nodebyid(struct node* temp, int id) {
+	if (temp->id == id) {
+		return temp;
+	}
+	node* x = NULL;
+	if (temp->right != NULL) {
+		x = nodebyid(temp->right, id);
+	}
+	if (temp->down != NULL && x == NULL) {
+		x = nodebyid(temp->down, id);
+	}
+	return x;
 }
