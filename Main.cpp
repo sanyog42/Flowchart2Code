@@ -105,7 +105,15 @@ void Main::OnCreateCode(wxCommandEvent& evt) {
 }
 
 void Main::OnGuidelines(wxCommandEvent& evt) {
-    
+    std::ifstream check("Guidelines.pdf");
+    if (!check) {
+        wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Guidelines File Not Found!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
+        dial->ShowModal();
+    }
+    else {
+        wxLaunchDefaultApplication("Guidelines.pdf");
+    }
+    check.close();
     evt.Skip();
 }
 

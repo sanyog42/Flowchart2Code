@@ -14,6 +14,7 @@ class img {
 public:
 	img(wxString filepath, wxString codepath, int lang_sel);
 	~img();
+	
 	int counter = 1;
 	float confThreshold = 0.5, nmsThreshold = 0.4;
 
@@ -41,4 +42,3 @@ private:
 	bool arrowbw(std::vector<cv::Rect> boxes, std::vector<int> classIds, int flag, int i, int idx);
 	int arrowloop(int j, std::vector<int> objectIds, std::vector<cv::Rect> boxes, std::vector<int> classIds);
 };
-

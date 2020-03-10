@@ -10,4 +10,3 @@ public:
 private:
 	CodeGenerate* generate = nullptr;
 };
-

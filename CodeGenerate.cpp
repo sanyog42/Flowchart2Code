@@ -276,16 +276,46 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 						validated += '=';
 					}
 				}
+				if (temp->text[i] == '&') {
+					if (temp->text[i + 1] != '\0' && temp->text[i + 1] != '&' && temp->text[i - 1] != '&') {
+						validated += '&';
+					}
+				}
+				if (temp->text[i] == '|') {
+					if (temp->text[i + 1] != '\0' && temp->text[i + 1] != '|' && temp->text[i - 1] != '|') {
+						validated += '|';
+					}
+				}
 				validated += temp->text[i];
 			}
+			
+			std::stringstream str(validated);
+			std::string word;
+			std::string final = "";
+			if (str >> word) {
+				final += word;
+				while (str >> word) {
+					if (word == "and") {
+						final += " &&";
+					}
+					else if (word == "or") {
+						final += " ||";
+					}
+					else {
+						final += " ";
+						final += word;
+					}
+				}
+			}
+			
 			if (loopflag == -1) {
-				code << "if (" << validated << ") {";
+				code << "if (" << final << ") {";
 			}
 			else if (loopflag == 0) {
-				code << "while (" << validated << ") {";
+				code << "while (" << final << ") {";
 			}
 			else if (loopflag == 2) {
-				code << "} while (" << validated << ");";
+				code << "} while (" << final << ");";
 			}
 		}
 
@@ -478,16 +508,46 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 						validated += '=';
 					}
 				}
+				if (temp->text[i] == '&') {
+					if (temp->text[i + 1] != '\0' && temp->text[i + 1] != '&' && temp->text[i - 1] != '&') {
+						validated += '&';
+					}
+				}
+				if (temp->text[i] == '|') {
+					if (temp->text[i + 1] != '\0' && temp->text[i + 1] != '|' && temp->text[i - 1] != '|') {
+						validated += '|';
+					}
+				}
 				validated += temp->text[i];
 			}
+
+			std::stringstream str(validated);
+			std::string word;
+			std::string final = "";
+			if (str >> word) {
+				final += word;
+				while (str >> word) {
+					if (word == "and") {
+						final += " &&";
+					}
+					else if (word == "or") {
+						final += " ||";
+					}
+					else {
+						final += " ";
+						final += word;
+					}
+				}
+			}
+
 			if (loopflag == -1) {
-				code << "if (" << validated << ") {";
+				code << "if (" << final << ") {";
 			}
 			else if (loopflag == 0) {
-				code << "while (" << validated << ") {";
+				code << "while (" << final << ") {";
 			}
 			else if (loopflag == 2) {
-				code << "} while (" << validated << ");";
+				code << "} while (" << final << ");";
 			}
 		}
 
@@ -655,7 +715,7 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 				varinf.second = vartype;
 				variables.push_back(varinf);
 			}
-			if (outflag == 1) {
+			if (outflag == 1 || flag == 0) {
 				code << out;
 			}
 			else {
@@ -722,12 +782,46 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 		else if (temp->type == 5) {
 			std::string validated = "";
 			for (int i = 0; temp->text[i] != '\0'; i++) {
+				int valflag = 0;
 				if (temp->text[i] == '=') {
 					if (temp->text[i + 1] != '\0' && temp->text[i + 1] != '=' && temp->text[i - 1] != '!' && temp->text[i - 1] != '=') {
 						validated += '=';
 					}
 				}
-				validated += temp->text[i];
+				if (temp->text[i] == '&') {
+					valflag = 1;
+					if (temp->text[i - 1] != '&') {
+						if (temp->text[i - 1] != ' ') {
+							validated += " ";
+						}
+						validated += "and";
+						if (temp->text[i + 1] != ' ') {
+							validated += " ";
+						}
+					}
+				}
+				if (temp->text[i] == '|') {
+					valflag = 1;
+					if (temp->text[i - 1] != '|') {
+						if (temp->text[i - 1] != ' ') {
+							validated += " ";
+						}
+						validated += "or";
+						if (temp->text[i + 1] != ' ') {
+							validated += " ";
+						}
+					}
+				}
+				if (temp->text[i] == '!') {
+					if (temp->text[i + 1] != '\0' && temp->text[i + 1] != '=') {
+						valflag = 1;
+						validated += "not";
+					}
+				}
+
+				if (valflag == 0) {
+					validated += temp->text[i];
+				}
 			}
 			if (loopflag == -1) {
 				code << "if (" << validated << "):";
@@ -736,7 +830,7 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 				code << "while (" << validated << "):";
 			}
 			else if (loopflag == 2) {
-				code << "if (" << validated << "):\n";
+				code << "if not(" << validated << "):\n";
 				for (int i = 0; i < level + 1; i++) {
 					code << "\t";
 				}

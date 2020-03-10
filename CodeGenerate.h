@@ -17,6 +17,7 @@ class CodeGenerate {
 public:
 	CodeGenerate(wxString codepath, node* start, int lang_sel);
 	~CodeGenerate();
+	
 	std::ofstream code;
 	node* first = nullptr;
 
@@ -34,4 +35,3 @@ private:
 	struct node* traverse_cpp(struct node* temp, int level);
 	struct node* traverse_py(struct node* temp, int level);
 };
-

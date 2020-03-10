@@ -59,7 +59,12 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
                     flag = 0;
                 }
                 else if (flag == 1) {
-                    flag = 2;
+                    if (line[i + 1] == '/') {
+                        flag = 2;
+                    }
+                    else {
+                        text += line[i];
+                    }
                 }
                 continue;
             }

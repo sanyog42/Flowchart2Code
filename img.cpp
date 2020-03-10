@@ -183,10 +183,6 @@ void img::drawPred(int classId, float conf, int left, int top, int right, int bo
 			}
 		}
 		ocr->End();
-		
-		/*std::ofstream file("text.txt", std::ios::out | std::ios::app); // for debugging
-		file << text << "\n";
-		file.close();*/
 
 		box.width -= 10;
 		box.height -= 10;
