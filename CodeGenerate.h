@@ -5,8 +5,8 @@
 #include <sstream>
 
 struct node {
-	int type;
-	int id;
+	int type = -1;
+	int id = -1;
 	std::string text = "";
 	node* right = NULL;
 	node* down = NULL;
