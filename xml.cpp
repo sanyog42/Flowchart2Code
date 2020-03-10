@@ -13,6 +13,7 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
     int tagtype;
     node* x = nullptr;
     int r = -1, d = -1, l = -1;
+    
     while (!file.eof()) {
         getline(file, line);
         if (line == "<node>") {
@@ -26,13 +27,13 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
                 start1 = x;
             }
             else {
-                if (d == -1) {
-                    node* temp = traverse1(start1, r);
-                    temp->right = x;
-                }
-                else {
+                if (d != -1) {
                     node* temp = traverse1(start1, d);
                     temp->down = x;
+                }
+                if (r != -1) {
+                    node* temp = traverse1(start1, r);
+                    temp->right = x;
                 }
                 if (l != -1) {
                     node* temp = traverse1(start1, l);
@@ -43,71 +44,27 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
             x = NULL;
             continue;
         }
+
         if (flagout == -1) {
             continue;
         }
+        
         flag = -1;
         std::string tag = "";
         std::string text = "";
-        tagtype = 0;
+        
         for (int i = 0; line[i] != '\0'; i++) {
-            if (line[i] == '<' && flag == -1) {
-                flag = 0;
+            if (line[i] == '<') {
+                if (flag == -1) {
+                    flag = 0;
+                }
+                else if (flag == 1) {
+                    flag = 2;
+                }
                 continue;
             }
             if (line[i] == '>' && flag == 0) {
                 flag = 1;
-                if (tag == "type") {
-                    tagtype = 1;
-                }
-                else if (tag == "id") {
-                    tagtype = 2;
-                }
-                else if (tag == "text") {
-                    tagtype = 3;
-                }
-                else if (tag == "right") {
-                    tagtype = 4;
-                }
-                else if (tag == "down") {
-                    tagtype = 5;
-                }
-                else if (tag == "loop") {
-                    tagtype = 6;
-                }
-                continue;
-            }
-            if (line[i] == '<' && flag == 1) {
-                flag = 2;
-                if (tagtype == 1) {
-                    if (text == "process") {
-                        x->type = 4;
-                    }
-                    else if (text == "decision") {
-                        x->type = 5;
-                    }
-                    else if (text == "data") {
-                        x->type = 6;
-                    }
-                    else if (text == "terminator") {
-                        x->type = 7;
-                    }
-                }
-                else if (tagtype == 2) {
-                    x->id = (int)(text[0] - '0');
-                }
-                else if (tagtype == 3) {
-                    x->text = text;
-                }
-                else if (tagtype == 4) {
-                    r = (int)(text[0] - '0');
-                }
-                else if (tagtype == 5) {
-                    d = (int)(text[0] - '0');
-                }
-                else if (tagtype == 6) {
-                    l = (int)(text[0] - '0');
-                }
                 continue;
             }
             if (flag == 0) {
@@ -116,6 +73,39 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
             else if (flag == 1) {
                 text += line[i];
             }
+        }
+
+        if (tag == "type") {
+            if (text == "connector") {
+                x->type = 3;
+            }
+            else if (text == "process") {
+                x->type = 4;
+            }
+            else if (text == "decision") {
+                x->type = 5;
+            }
+            else if (text == "data") {
+                x->type = 6;
+            }
+            else if (text == "terminator") {
+                x->type = 7;
+            }
+        }
+        else if (tag == "id") {
+            x->id = stoi(text);
+        }
+        else if (tag == "text") {
+            x->text = text;
+        }
+        else if (tag == "right") {
+            r = stoi(text);
+        }
+        else if (tag == "down") {
+            d = stoi(text);
+        }
+        else if (tag == "loop") {
+            l = stoi(text);
         }
     }
     file.close();

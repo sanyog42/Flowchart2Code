@@ -22,12 +22,14 @@ public:
 private:
 	int codeflag = 0;
 	std::vector<std::pair<int, int>> loops;
+	std::vector<std::pair<int, int>> connectors;
 	std::vector<int> used;
 	std::vector<std::pair<std::string, int>> variables;
 	//void print(struct node* temp); // for debugging
 	void markloops(struct node* temp);
-	void traverse_c(struct node* temp, int level);
-	void traverse_cpp(struct node* temp, int level);
-	void traverse_py(struct node* temp, int level);
+	void find_connectors(struct node* temp);
+	struct node* traverse_c(struct node* temp, int level);
+	struct node* traverse_cpp(struct node* temp, int level);
+	struct node* traverse_py(struct node* temp, int level);
 };
 
