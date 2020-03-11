@@ -150,7 +150,9 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 				level++;
 			}
 			else if (temp->text == "END") {
-				code << "return 0;";
+				if (level != 0) {
+					code << "return 0;";
+				}
 				if (level == 1) {
 					code << "\n}";
 					codeflag = 1;
@@ -446,7 +448,9 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 				level++;
 			}
 			else if (temp->text == "END") {
-				code << "return 0;";
+				if (level != 0) {
+					code << "return 0;";
+				}
 				if (level == 1) {
 					code << "\n}";
 					codeflag = 1;

@@ -26,6 +26,12 @@ img::img(wxString filepath, wxString codepath, int lang_sel) {
 	while (cv::waitKey(1) < 0)
 	{
 		cap >> frame;
+
+		if (frame.cols > 700) {
+			double scale = float(700) / frame.cols;
+			cv::resize(frame, frame, cv::Size(0, 0), scale, scale, cv::INTER_AREA);
+		}
+
 		if (frame.empty())
 		{
 			cv::waitKey();
