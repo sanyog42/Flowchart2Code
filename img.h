@@ -41,4 +41,5 @@ private:
 	bool checkright(float cent_x, float cent_y, cv::Rect box);
 	bool arrowbw(std::vector<cv::Rect> boxes, std::vector<int> classIds, int flag, int i, int idx);
 	int arrowloop(int j, std::vector<int> objectIds, std::vector<cv::Rect> boxes, std::vector<int> classIds);
+	cv::Mat resizeKeepAspectRatio(cv::Mat input, cv::Size dstSize, cv::Scalar bgcolor);
 };

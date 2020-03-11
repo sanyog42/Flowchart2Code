@@ -26,17 +26,14 @@ img::img(wxString filepath, wxString codepath, int lang_sel) {
 	while (cv::waitKey(1) < 0)
 	{
 		cap >> frame;
-
-		if (frame.cols > 700) {
-			double scale = float(700) / frame.cols;
-			cv::resize(frame, frame, cv::Size(0, 0), scale, scale, cv::INTER_AREA);
-		}
-
+		
 		if (frame.empty())
 		{
 			cv::waitKey();
 			break;
 		}
+
+		frame = resizeKeepAspectRatio(frame, cv::Size(1024, 1024), cv::Scalar(255, 255, 255));
 
 		preprocess(frame, net, cv::Size(frame.cols, frame.rows), true);
 
@@ -55,8 +52,13 @@ img::img(wxString filepath, wxString codepath, int lang_sel) {
 		imshow(kWinName, frame);
 
 		//print(start); // for debugging
-
-		generate = new CodeGenerate(codepath, start, lang_sel);
+		if (start != NULL) {
+			generate = new CodeGenerate(codepath, start, lang_sel);
+		}
+		else {
+			wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Error in Scan!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
+			dial->ShowModal();
+		}
 	}
 }
 
@@ -126,7 +128,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 		dial->ShowModal();
 		exit(0);
 	}
-
+	
 	std::vector<int> indices;
 	std::vector<int> objectIds;
 	std::vector<cv::Rect> boxes;
@@ -134,6 +136,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 	std::vector<int> classIds;
 
 	cv::dnn::NMSBoxes(boxesinit, confidencesinit, confThreshold, nmsThreshold, indices);
+	
 	for (int i = 0; i < indices.size(); ++i) {
 		int idx = indices[i];
 		boxes.push_back(boxesinit[idx]);
@@ -144,6 +147,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 		status.push_back(0);
 		status1.push_back(0);
 	}
+	
 	sortdown(boxes, classIds, confidences);
 
 	std::vector<int> objectIds1 = objectIds;
@@ -153,7 +157,9 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 	sortright(boxes1, classIds1, objectIds1);
 
 	createnodes(classIds, boxes, objectIds, classIds1, boxes1, objectIds1, 0, 0);
-	findloops(classIds, boxes, objectIds, classIds1, boxes1, objectIds1);
+	if (start != NULL) {
+		findloops(classIds, boxes, objectIds, classIds1, boxes1, objectIds1);
+	}
 
 	for (int idx = 0; idx < boxes.size(); idx++)
 	{
@@ -166,6 +172,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 		else {
 			boxId = -1;
 		}
+
 		drawPred(classIds[idx], confidences[idx], box.x, box.y, box.x + box.width, box.y + box.height, frame, box, boxId);
 	}
 }
@@ -193,6 +200,7 @@ void img::drawPred(int classId, float conf, int left, int top, int right, int bo
 		box.width -= 10;
 		box.height -= 10;
 		box.x += 5;
+		
 		inserttext(text, boxId);
 	}
 
@@ -585,4 +593,27 @@ int img::arrowloop(int i, std::vector<int> objectIds, std::vector<cv::Rect> boxe
 		}
 	}
 	return idx;
+}
+
+cv::Mat img::resizeKeepAspectRatio(const cv::Mat input, const cv::Size dstSize, const cv::Scalar bgcolor)
+{
+	cv::Mat output;
+
+	double h1 = dstSize.width * (input.rows / (double)input.cols);
+	double w2 = dstSize.height * (input.cols / (double)input.rows);
+	if (h1 <= dstSize.height) {
+		cv::resize(input, output, cv::Size(dstSize.width, h1));
+	}
+	else {
+		cv::resize(input, output, cv::Size(w2, dstSize.height));
+	}
+
+	int top = (dstSize.height - output.rows) / 2;
+	int down = (dstSize.height - output.rows + 1) / 2;
+	int left = (dstSize.width - output.cols) / 2;
+	int right = (dstSize.width - output.cols + 1) / 2;
+
+	cv::copyMakeBorder(output, output, top, down, left, right, cv::BORDER_CONSTANT, bgcolor);
+
+	return output;
 }
