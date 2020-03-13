@@ -26,7 +26,7 @@ img::img(wxString filepath, wxString codepath, int lang_sel) {
 	while (cv::waitKey(1) < 0)
 	{
 		cap >> frame;
-		
+
 		if (frame.empty())
 		{
 			cv::waitKey();
@@ -128,7 +128,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 		dial->ShowModal();
 		exit(0);
 	}
-	
+
 	std::vector<int> indices;
 	std::vector<int> objectIds;
 	std::vector<cv::Rect> boxes;
@@ -136,7 +136,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 	std::vector<int> classIds;
 
 	cv::dnn::NMSBoxes(boxesinit, confidencesinit, confThreshold, nmsThreshold, indices);
-	
+
 	for (int i = 0; i < indices.size(); ++i) {
 		int idx = indices[i];
 		boxes.push_back(boxesinit[idx]);
@@ -147,7 +147,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 		status.push_back(0);
 		status1.push_back(0);
 	}
-	
+
 	sortdown(boxes, classIds, confidences);
 
 	std::vector<int> objectIds1 = objectIds;
@@ -200,7 +200,7 @@ void img::drawPred(int classId, float conf, int left, int top, int right, int bo
 		box.width -= 10;
 		box.height -= 10;
 		box.x += 5;
-		
+
 		inserttext(text, boxId);
 	}
 
@@ -399,7 +399,9 @@ void img::findloops(std::vector<int> classIds, std::vector<cv::Rect> boxes, std:
 		if (idx != -1) {
 			node* temp = traverse(start, objectIds1[idx]);
 			node* temp1 = traverse(start, objectIds1[i]);
-			temp->loop = temp1;
+			if(temp != NULL && temp != NULL){
+                temp->loop = temp1;
+			}
 			status1[i] = 1;
 			status1[idx] = 1;
 		}
