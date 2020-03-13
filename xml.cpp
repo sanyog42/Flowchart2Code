@@ -10,18 +10,26 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
     std::string line;
     int flag;
     int flagout = -1;
-    int tagtype;
     node* x = nullptr;
     int r = -1, d = -1, l = -1;
-    
+
     while (!file.eof()) {
         getline(file, line);
+        std::string line1 = "";
+        for(int i = 0; line[i] != '\0'; i++){
+            if(line[i] != '\r' && line[i] != '\n'){
+                line1 += line[i];
+            }
+        }
+        line = line1;
+
         if (line == "<node>") {
             flagout = 0;
             x = new node;
             continue;
         }
         else if (line == "</node>") {
+
             flagout = -1;
             if (start1 == NULL) {
                 start1 = x;
@@ -48,11 +56,11 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
         if (flagout == -1) {
             continue;
         }
-        
+
         flag = -1;
         std::string tag = "";
         std::string text = "";
-        
+
         for (int i = 0; line[i] != '\0'; i++) {
             if (line[i] == '<') {
                 if (flag == -1) {
