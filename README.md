@@ -9,6 +9,6 @@ There are two ways to run the application:
    * [LINUX](#)
    * [MACOS](#)
 
-### Guidelines regarding how input is to be given can be found [here](https://drive.google.com/file/d/1p-m53pLbRuBU_yiJNYRkT-QIrPdxHxaY/view?usp=sharing)
+### Guidelines regarding how input is to be given can be found [here](https://github.com/sanyog42/Flowchart2Code/blob/master/Guidelines.pdf)
 
 ### Link to the Model used: https://github.com/mlcv-ime/faster-rcnn-graphics
