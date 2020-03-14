@@ -187,7 +187,7 @@ void img::drawPred(int classId, float conf, int left, int top, int right, int bo
 
 		tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
 		ocr->Init(NULL, "eng", tesseract::OEM_LSTM_ONLY);
-		ocr->SetPageSegMode(tesseract::PSM_AUTO);
+		ocr->SetPageSegMode(tesseract::PSM_SINGLE_LINE);
 		ocr->SetImage(textbox.data, textbox.cols, textbox.rows, 3, textbox.step);
 		text = std::string(ocr->GetUTF8Text());
 		for (int i = 0; i < text.length(); i++) {
