@@ -23,6 +23,7 @@ img::img(wxString filepath, wxString codepath, int lang_sel) {
 	cap.open(path);
 
 	cv::Mat frame, blob;
+	
 	while (cv::waitKey(1) < 0)
 	{
 		cap >> frame;
@@ -186,7 +187,7 @@ void img::drawPred(int classId, float conf, int left, int top, int right, int bo
 		std::string text;
 
 		tesseract::TessBaseAPI* ocr = new tesseract::TessBaseAPI();
-		ocr->Init(NULL, "eng", tesseract::OEM_LSTM_ONLY);
+		ocr->Init("tessdata", "eng", tesseract::OEM_LSTM_ONLY);
 		ocr->SetPageSegMode(tesseract::PSM_SINGLE_LINE);
 		ocr->SetImage(textbox.data, textbox.cols, textbox.rows, 3, textbox.step);
 		text = std::string(ocr->GetUTF8Text());
