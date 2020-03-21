@@ -7,7 +7,7 @@ There are two ways to run the application:
 2. Download only the Application from the given below links according to your operating system:
    * [WINDOWS](https://drive.google.com/file/d/1GHOQw_KVzaKQLkrZWPs4eTXW35f8IPbY/view?usp=sharing)
    * [LINUX](https://drive.google.com/file/d/1s4tiCQWewSPi8f7INXbmcyMWT9QXghsA/view?usp=sharing)
-   * [MACOS](#)
+   * [MACOS](https://drive.google.com/file/d/1rr_0ztOAnC067Lp-M4aeG2i38P6YYSoH/view?usp=sharing)
    
 ## Specific Instructions to Run the Application for Linux Users:
 Run the following commands once in terminal for installing dependencies: (If running Debian based linux)
