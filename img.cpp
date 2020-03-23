@@ -400,7 +400,7 @@ void img::findloops(std::vector<int> classIds, std::vector<cv::Rect> boxes, std:
 		if (idx != -1) {
 			node* temp = traverse(start, objectIds1[idx]);
 			node* temp1 = traverse(start, objectIds1[i]);
-			if(temp != NULL && temp != NULL){
+			if(temp != NULL && temp1 != NULL){
                 temp->loop = temp1;
 			}
 			status1[i] = 1;

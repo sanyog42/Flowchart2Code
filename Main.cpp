@@ -5,9 +5,13 @@ wxBEGIN_EVENT_TABLE(Main, wxFrame)
 wxEND_EVENT_TABLE()
 
 Main::Main() : wxFrame(nullptr, wxID_ANY, "Flowchart2Code") {
+
+#ifndef __WXOSX__
     wxIcon mainicon;
     mainicon.LoadFile("Flowchart2Code.ico", wxBITMAP_TYPE_ICO);
     SetIcon(mainicon);
+#endif
+
     wxMenuBar* menubar = new wxMenuBar;
     wxMenu* fileMenu = new wxMenu;
     

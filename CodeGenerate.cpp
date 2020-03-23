@@ -3,6 +3,26 @@
 CodeGenerate::CodeGenerate(wxString codepath, node* start, int lang_sel) {
 	first = start;
 	std::string path = std::string(codepath.mb_str());
+
+#ifdef __WXGTK__
+	if(lang_sel==0){
+        	std::string str = path.substr(path.length()-2,2);
+        	if(str != ".c"){
+            		path+=".c";
+        	}
+	}else if(lang_sel==1){
+        	std::string str = path.substr(path.length()-4,4);
+        	if(str != ".cpp"){
+            		path+=".cpp";
+        	}
+	}else{
+        	std::string str = path.substr(path.length()-3,3);
+        	if(str != ".py"){
+            		path+=".py";
+        	}
+	}
+#endif
+
 	code.open(path, std::ios::out | std::ios::trunc);
 
 	markloops(start);
