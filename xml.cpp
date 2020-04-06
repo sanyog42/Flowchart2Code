@@ -1,21 +1,19 @@
 #include "xml.h"
 
-node* start1 = nullptr;
-
-struct node* traverse1(struct node* temp, int id1);
-
 xml::xml(wxString filepath, wxString codepath, int lang_sel) {
 	std::string path = std::string(filepath.mb_str());
     std::ifstream file(path, std::ios::in);
     std::string line;
-    int flag;
-    int flagout = -1;
+    int flag;   // whether inside opening tag, data or closing tag
+    int flagout = -1;   // whether inside the <node> tag or outside
     node* x = nullptr;
-    int r = -1, d = -1, l = -1;
+    int r = -1, d = -1, l = -1;   // whether right tag, down tag or/and loop tag present
 
+    // Read the xml file line by line
     while (!file.eof()) {
         getline(file, line);
         std::string line1 = "";
+        // Fix errors arising due to /r and /n
         for(int i = 0; line[i] != '\0'; i++){
             if(line[i] != '\r' && line[i] != '\n'){
                 line1 += line[i];
@@ -29,7 +27,6 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
             continue;
         }
         else if (line == "</node>") {
-
             flagout = -1;
             if (start1 == NULL) {
                 start1 = x;
@@ -125,11 +122,8 @@ xml::xml(wxString filepath, wxString codepath, int lang_sel) {
 	generate = new CodeGenerate(codepath, start1, lang_sel);
 }
 
-xml::~xml() {
-
-}
-
-struct node* traverse1(struct node* temp, int id1) {
+// Function to traverse the data structure created
+struct node* xml::traverse1(struct node* temp, int id1) {
     if (temp->id == id1) {
         return temp;
     }

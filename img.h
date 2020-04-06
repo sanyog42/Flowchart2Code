@@ -12,19 +12,20 @@
 
 class img {
 public:
-	img(wxString filepath, wxString codepath, int lang_sel);
-	~img();
-	
-	int counter = 1;
-	float confThreshold = 0.5, nmsThreshold = 0.4;
+    img(wxString filepath, wxString codepath, int lang_sel);
+
+    node* start = nullptr;
 
 private:
 	CodeGenerate* generate = nullptr;
 
+	int counter = 1;
+	float confThreshold = 0.5, nmsThreshold = 0.4;   // confidence and nms threshold for relevance
 	std::string classes[7] = { "Text", "Arrow", "Connection", "Process", "Decision", "Data", "Terminator" };
 	std::vector<int> status;
 	std::vector<int> status1;
 
+	struct node* traverse(struct node* temp, int id1);
 	void preprocess(const cv::Mat& frame, cv::dnn::Net& net, cv::Size inpSize, bool swapRB);
 	void postprocess(cv::Mat& frame, const std::vector<cv::Mat>& out, cv::dnn::Net& net);
 	void drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame, cv::Rect box, int boxId);
@@ -33,7 +34,7 @@ private:
 	void createnodes(std::vector<int> classIds, std::vector<cv::Rect> boxes, std::vector<int> objectIds, std::vector<int> classIds1, std::vector<cv::Rect> boxes1, std::vector<int> objectIds1, int idx, int idx1);
 	void findloops(std::vector<int> classIds, std::vector<cv::Rect> boxes, std::vector<int> objectIds, std::vector<int> classIds1, std::vector<cv::Rect> boxes1, std::vector<int> objectIds1);
 	void inserttext(std::string text, int objectId);
-	//void print(struct node* temp); // for debugging
+	//void print(struct node* temp);   // for debugging
 	int findbox(std::vector<cv::Rect> boxes, int objectId);
 	int idxright(int i, std::vector<int> objectIds);
 	bool check(float cent_x, float cent_y, cv::Rect box);

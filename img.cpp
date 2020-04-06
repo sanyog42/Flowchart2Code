@@ -1,72 +1,53 @@
 #include "img.h"
 
-node* start = nullptr;
-
-struct node* traverse(struct node* temp, int id1);
-
 img::img(wxString filepath, wxString codepath, int lang_sel) {
+    // Path to Model and Config file
 	std::string modelPath = "model/flowchart.pb";
 	std::string configPath = "model/flowchart.pbtxt";
 
-	cv::dnn::Net net = cv::dnn::readNet(modelPath, configPath);
+	// Load model
+	cv::dnn::Net net = cv::dnn::readNetFromTensorflow(modelPath, configPath);
 	net.setPreferableBackend(cv::dnn::DNN_BACKEND_OPENCV);
-	net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);
+	net.setPreferableTarget(cv::dnn::DNN_TARGET_CPU);   // GPU can also be used for faster performance but using CPU here
 	std::vector<cv::String> outNames = net.getUnconnectedOutLayersNames();
 
 	static const std::string kWinName = "Flowchart2Code";
 	cv::namedWindow(kWinName, cv::WINDOW_AUTOSIZE);
 
-	cv::VideoCapture cap;
 	std::string path = std::string(filepath.mb_str());
-	std::ifstream file(path);
-
-	cap.open(path);
-
 	cv::Mat frame, blob;
-	
-	while (cv::waitKey(1) < 0)
-	{
-		cap >> frame;
 
-		if (frame.empty())
-		{
-			cv::waitKey();
-			break;
-		}
+    frame = cv::imread(path);
+    frame = resizeKeepAspectRatio(frame, cv::Size(1024, 1024), cv::Scalar(255, 255, 255));
 
-		frame = resizeKeepAspectRatio(frame, cv::Size(1024, 1024), cv::Scalar(255, 255, 255));
+    preprocess(frame, net, cv::Size(frame.cols, frame.rows), true);
 
-		preprocess(frame, net, cv::Size(frame.cols, frame.rows), true);
+    std::vector<cv::Mat> outs;
+    net.forward(outs, outNames);
 
-		std::vector<cv::Mat> outs;
-		net.forward(outs, outNames);
+    postprocess(frame, outs, net);
 
-		postprocess(frame, outs, net);
+    // Efficiency information
+    std::vector<double> layersTimes;
+    double freq = cv::getTickFrequency() / 1000;
+	double t = net.getPerfProfile(layersTimes) / freq;
+	std::string label = cv::format("Inference time: %.2f ms", t);
+	cv::putText(frame, label, cv::Point(0, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0));
 
-		// Efficiency information
-		std::vector<double> layersTimes;
-		double freq = cv::getTickFrequency() / 1000;
-		double t = net.getPerfProfile(layersTimes) / freq;
-		std::string label = cv::format("Inference time: %.2f ms", t);
-		putText(frame, label, cv::Point(0, 15), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar(0, 255, 0));
+	cv::resize(frame, frame, cv::Size(700, 700));
+	cv::imshow(kWinName, frame);
 
-		imshow(kWinName, frame);
-
-		//print(start); // for debugging
-		if (start != NULL) {
-			generate = new CodeGenerate(codepath, start, lang_sel);
-		}
-		else {
-			wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Error in Scan!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
-			dial->ShowModal();
-		}
+	//print(start);   // for debugging
+	if (start != NULL) {
+		generate = new CodeGenerate(codepath, start, lang_sel);
+	}
+	else {
+		wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Invalid Input!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
+		dial->ShowModal();
 	}
 }
 
-img::~img() {
-
-}
-
+// Inlined for speed and its recommended in OpenCV
 inline void img::preprocess(const cv::Mat& frame, cv::dnn::Net& net, cv::Size inpSize, bool swapRB) {
 	static cv::Mat blob;
 	if (inpSize.width <= 0) inpSize.width = frame.cols;
@@ -178,6 +159,7 @@ void img::postprocess(cv::Mat& frame, const std::vector<cv::Mat>& outs, cv::dnn:
 	}
 }
 
+// For Drawing bounding boxes and calling tesseract ocr
 void img::drawPred(int classId, float conf, int left, int top, int right, int bottom, cv::Mat& frame, cv::Rect box, int boxId) {
 	if (classId == 1) {
 		box.x -= 5;
@@ -217,6 +199,7 @@ void img::drawPred(int classId, float conf, int left, int top, int right, int bo
 	putText(frame, label, cv::Point(left, top), cv::FONT_HERSHEY_SIMPLEX, 0.5, cv::Scalar());
 }
 
+// Sort vertically all the nodes
 void img::sortdown(std::vector<cv::Rect>& boxes, std::vector<int>& classIds, std::vector<float>& confidences) {
 	int len = boxes.size();
 	for (int i = 0; i < len - 1; i++) {
@@ -248,6 +231,7 @@ void img::sortdown(std::vector<cv::Rect>& boxes, std::vector<int>& classIds, std
 	}
 }
 
+// Sort Horizontally all the nodes
 void img::sortright(std::vector<cv::Rect>& boxes, std::vector<int>& classIds, std::vector<int>& objectIds) {
 	int len = boxes.size();
 	for (int i = 0; i < len - 1; i++) {
@@ -279,6 +263,7 @@ void img::sortright(std::vector<cv::Rect>& boxes, std::vector<int>& classIds, st
 	}
 }
 
+// Initialize creation of nodes
 void img::createnodes(std::vector<int> classIds, std::vector<cv::Rect> boxes, std::vector<int> objectIds, std::vector<int> classIds1, std::vector<cv::Rect> boxes1, std::vector<int> objectIds1, int idx, int idx1) {
 	for (int i = idx; i < classIds.size(); i++) {
 		if (classIds[i] == 1 || classIds[i] == 2 || status[i] == 1) {
@@ -391,6 +376,7 @@ void img::createnodes(std::vector<int> classIds, std::vector<cv::Rect> boxes, st
 	}
 }
 
+// Find all loops in the given flowchart
 void img::findloops(std::vector<int> classIds, std::vector<cv::Rect> boxes, std::vector<int> objectIds, std::vector<int> classIds1, std::vector<cv::Rect> boxes1, std::vector<int> objectIds1) {
 	for (int i = 0; i < objectIds1.size(); i++) {
 		if (status1[i] == 1/* || classIds1[i] != 5*/) {
@@ -409,7 +395,8 @@ void img::findloops(std::vector<int> classIds, std::vector<cv::Rect> boxes, std:
 	}
 }
 
-struct node* traverse(struct node* temp, int id1) {
+// For traversing the data structure
+struct node* img::traverse(struct node* temp, int id1) {
 	if (temp->id == id1) {
 		return temp;
 	}
@@ -423,6 +410,7 @@ struct node* traverse(struct node* temp, int id1) {
 	return x;
 }
 
+// For inserting detected text in the appropriate node
 void img::inserttext(std::string text, int objectId) {
 	if (objectId == -1) {
 		return;
@@ -452,6 +440,7 @@ void img::inserttext(std::string text, int objectId) {
 	}
 }*/
 
+// Find box for the text
 int img::findbox(std::vector<cv::Rect> boxes, int objectId) {
 	int idx = objectId - 1;
 	float cent_x = (boxes[idx].x) + ((boxes[idx].height) / 2);
@@ -467,6 +456,7 @@ int img::findbox(std::vector<cv::Rect> boxes, int objectId) {
 	return -1;
 }
 
+// Index in hortizontally sorted array
 int img::idxright(int i, std::vector<int> objectIds) {
 	for (int j = 0; j < objectIds.size(); j++) {
 		if (objectIds[j] == i + 1) {
@@ -475,27 +465,31 @@ int img::idxright(int i, std::vector<int> objectIds) {
 	}
 }
 
+// Check if inside a given box
 bool img::check(float cent_x, float cent_y, cv::Rect box) {
-	if ((cent_x > box.x&& cent_x < box.x + box.width) && (cent_y > box.y&& cent_y < box.y + box.height)) {
+	if ((cent_x > box.x && cent_x < box.x + box.width) && (cent_y > box.y && cent_y < box.y + box.height)) {
 		return true;
 	}
 	return false;
 }
 
+// Check if down to a box
 bool img::checkdown(float cent_x, float cent_y, cv::Rect box) {
-	if (cent_x > box.x&& cent_x < box.x + box.width && cent_y > box.y) {
+	if (cent_x > box.x && cent_x < box.x + box.width && cent_y > box.y) {
 		return true;
 	}
 	return false;
 }
 
+// Check if right to a box
 bool img::checkright(float cent_x, float cent_y, cv::Rect box) {
-	if (cent_y > box.y&& cent_y < box.y + box.height && cent_x > box.x) {
+	if (cent_y > box.y && cent_y < box.y + box.height && cent_x > box.x) {
 		return true;
 	}
 	return false;
 }
 
+// Check if arrow is between nodes
 bool img::arrowbw(std::vector<cv::Rect> boxes, std::vector<int> classIds, int flag, int i, int idx) {
 	int flag1 = 0;
 	if (flag == 0) {
@@ -517,7 +511,7 @@ bool img::arrowbw(std::vector<cv::Rect> boxes, std::vector<int> classIds, int fl
 				continue;
 			}
 			float cent_x = boxes[j].x + ((boxes[j].width) / 2);
-			if (cent_x > xmin&& cent_x < xmax) {
+			if (cent_x > xmin && cent_x < xmax) {
 				if (classIds[j] == 2) {
 					flag1 = 1;
 				}
@@ -547,7 +541,7 @@ bool img::arrowbw(std::vector<cv::Rect> boxes, std::vector<int> classIds, int fl
 				continue;
 			}
 			float cent_y = boxes[j].y + ((boxes[j].height) / 2);
-			if (cent_y > ymin&& cent_y < ymax) {
+			if (cent_y > ymin && cent_y < ymax) {
 				if (classIds[j] == 2) {
 					flag1 = 1;
 				}
@@ -566,6 +560,7 @@ bool img::arrowbw(std::vector<cv::Rect> boxes, std::vector<int> classIds, int fl
 	}
 }
 
+// Check for loop arrows
 int img::arrowloop(int i, std::vector<int> objectIds, std::vector<cv::Rect> boxes, std::vector<int> classIds) {
 	int idx = -1, flag = 0;
 	float cent_x = boxes[i].x + ((boxes[i].width) / 2);
@@ -576,14 +571,14 @@ int img::arrowloop(int i, std::vector<int> objectIds, std::vector<cv::Rect> boxe
 		}
 		float corn_x = boxes[j].x + boxes[j].width;
 		float corn_y = boxes[j].y;
-		if (corn_y > boxes[i].y&& corn_y < boxes[i].y + boxes[i].height) {
+		if (corn_y > boxes[i].y && corn_y < boxes[i].y + boxes[i].height) {
 			for (int k = j + 1; k < objectIds.size(); k++) {
-				if (k == i || (cent_y > boxes[k].y&& cent_y < boxes[k].y + boxes[k].height) || classIds[k] == 1) {
+				if (k == i || (cent_y > boxes[k].y && cent_y < boxes[k].y + boxes[k].height) || classIds[k] == 1) {
 					continue;
 				}
 				float corn_x1 = boxes[j].x + boxes[j].width;
 				float corn_y1 = boxes[j].y + boxes[j].height;
-				if (corn_y1 > boxes[k].y&& corn_y1 < boxes[k].y + boxes[k].height) {
+				if (corn_y1 > boxes[k].y && corn_y1 < boxes[k].y + boxes[k].height) {
 					idx = k;
 					flag = 1;
 					status1[j] = 1;
@@ -598,6 +593,7 @@ int img::arrowloop(int i, std::vector<int> objectIds, std::vector<cv::Rect> boxe
 	return idx;
 }
 
+// For resizing image to the dimensions best suited for the model
 cv::Mat img::resizeKeepAspectRatio(const cv::Mat input, const cv::Size dstSize, const cv::Scalar bgcolor)
 {
 	cv::Mat output;

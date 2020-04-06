@@ -7,19 +7,19 @@
 class Main : public wxFrame {
 public:
 	Main();
-	~Main();
-	
-	wxFileDialog* file;
-	wxFileDialog* code;
-	wxRadioBox* inputbox;
-	wxRadioBox* langbox;
-	int lang_sel = 0, inp_sel = 0;
-	wxString filepath;
-	wxString codepath;
+
+    img* imagefile = nullptr;
+	xml* xmlfile = nullptr;
 
 private:
-	img* imagefile = nullptr;
-	xml* xmlfile = nullptr;
+    wxFileDialog* file = nullptr;
+	wxFileDialog* code = nullptr;
+	wxRadioBox* inputbox = nullptr;
+	wxRadioBox* langbox = nullptr;
+
+	int lang_sel = 0, inp_sel = 0;   // language and input type selected
+	wxString filepath;   // path to input file
+	wxString codepath;   // path to output file
 
 	void OnMenuQuit(wxCommandEvent& evt);
 	void OnGuidelines(wxCommandEvent& evt);

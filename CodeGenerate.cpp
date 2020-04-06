@@ -4,39 +4,43 @@ CodeGenerate::CodeGenerate(wxString codepath, node* start, int lang_sel) {
 	first = start;
 	std::string path = std::string(codepath.mb_str());
 
+// To add file extension specifically in Linux
 #ifdef __WXGTK__
 	if(lang_sel==0){
         	std::string str = path.substr(path.length()-2,2);
         	if(str != ".c"){
-            		path+=".c";
+            		path += ".c";
         	}
 	}else if(lang_sel==1){
         	std::string str = path.substr(path.length()-4,4);
         	if(str != ".cpp"){
-            		path+=".cpp";
+            		path += ".cpp";
         	}
 	}else{
         	std::string str = path.substr(path.length()-3,3);
         	if(str != ".py"){
-            		path+=".py";
+            		path += ".py";
         	}
 	}
 #endif
 
 	code.open(path, std::ios::out | std::ios::trunc);
 
-	markloops(start);
-	find_connectors(start);
+	markloops(start);   // finds all the loops present
+	find_connectors(start);   // finds all the connectors present
 
+	// If C is selected
 	if (lang_sel == 0) {
 		code << "#include <stdio.h>\n\n";
 		node* init = traverse_c(start, 0);
 	}
+	// If C++ is selected
 	else if (lang_sel == 1) {
 		code << "#include <iostream>\n";
 		code << "using namespace std;\n\n";
 		node* init = traverse_cpp(start, 0);
 	}
+	// If Python is selected
 	else {
 		node* init = traverse_py(start, 0);
 	}
@@ -46,13 +50,10 @@ CodeGenerate::CodeGenerate(wxString codepath, node* start, int lang_sel) {
 	}
 
 	code.close();
-	wxLaunchDefaultApplication(path);
+	wxLaunchDefaultApplication(path);   // open the code file generated
 }
 
-CodeGenerate::~CodeGenerate() {
-
-}
-
+// Function to find all loops
 void CodeGenerate::markloops(struct node* temp) {
 	if (temp->loop != NULL) {
 		std::pair<int, int> x;
@@ -72,9 +73,10 @@ void CodeGenerate::markloops(struct node* temp) {
 	}
 }
 
+// Function to find all connectors
 void CodeGenerate::find_connectors(struct node* temp) {
 	int found = 0;
-	
+
 	if (temp->type == 3) {
 		for (int i = 0; i < connectors.size(); i++) {
 			if (connectors[i].first == temp->id) {
@@ -102,11 +104,14 @@ void CodeGenerate::find_connectors(struct node* temp) {
 	}
 }
 
+// If C is selected
 struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 	node* run = NULL;
-	int loopflag = -1;
+	int loopflag = -1;   // Type of loop
+
+	// If connector
 	if (temp->type == 3) {
-		int status = 0;
+		int status = 0;   // flag for whether connector detected earlier
 		for (int i = 0; i < connectors.size(); i++) {
 			if (connectors[i].first == temp->id) {
 				if (connectors[i].second == 0) {
@@ -131,6 +136,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 		}
 	}
 	else {
+        // Check whether part of a loop
 		for (int i = 0; i < loops.size(); i++) {
 			if (loops[i].second == temp->id && used[i] == 0) {
 				node* x = nodebyid(first, loops[i].first);
@@ -160,10 +166,12 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 			}
 		}
 
+        // Add Indentation
 		for (int i = 0; i < level; i++) {
 			code << "\t";
 		}
 
+		// If Terminator
 		if (temp->type == 7) {
 			if (temp->text == "START") {
 				code << "int main() {";
@@ -179,6 +187,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 				}
 			}
 		}
+		// If Data
 		else if (temp->type == 6) {
 			std::stringstream var(temp->text);
 			std::string word;
@@ -232,6 +241,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 			}
 			code << ";";
 		}
+		// If Process
 		else if (temp->type == 4) {
 			std::stringstream str(temp->text);
 			std::string word;
@@ -290,6 +300,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 			}
 			code << ");";
 		}
+		// If Decision
 		else if (temp->type == 5) {
 			std::string validated = "";
 			for (int i = 0; temp->text[i] != '\0'; i++) {
@@ -310,7 +321,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 				}
 				validated += temp->text[i];
 			}
-			
+
 			std::stringstream str(validated);
 			std::string word;
 			std::string final = "";
@@ -329,7 +340,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 					}
 				}
 			}
-			
+
 			if (loopflag == -1) {
 				code << "if (" << final << ") {";
 			}
@@ -343,6 +354,7 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 
 		code << "\n";
 
+        // Handling loops
 		if (temp->type == 5) {
 			if (loopflag == 2) {
 				if (temp->down != NULL) {
@@ -400,11 +412,14 @@ struct node* CodeGenerate::traverse_c(struct node* temp, int level) {
 	return run;
 }
 
+// If C++ is selected
 struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
-	int loopflag = -1;
+	int loopflag = -1;   // type of loop
 	node* run = NULL;
+
+	// If connector
 	if (temp->type == 3) {
-		int status = 0;
+		int status = 0;   // flag for whether connector detected earlier
 		for (int i = 0; i < connectors.size(); i++) {
 			if (connectors[i].first == temp->id) {
 				if (connectors[i].second == 0) {
@@ -429,6 +444,7 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 		}
 	}
 	else {
+        // Check whether part of a loop
 		for (int i = 0; i < loops.size(); i++) {
 			if (loops[i].second == temp->id && used[i] == 0) {
 				node* x = nodebyid(first, loops[i].first);
@@ -458,10 +474,12 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 			}
 		}
 
+		// Add Indentation
 		for (int i = 0; i < level; i++) {
 			code << "\t";
 		}
 
+		// If Terminator
 		if (temp->type == 7) {
 			if (temp->text == "START") {
 				code << "int main() {";
@@ -477,6 +495,7 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 				}
 			}
 		}
+		// If Data
 		else if (temp->type == 6) {
 			std::stringstream var(temp->text);
 			std::string word;
@@ -508,6 +527,7 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 			}
 			code << ";";
 		}
+		// If Process
 		else if (temp->type == 4) {
 			std::stringstream str(temp->text);
 			std::string word;
@@ -524,6 +544,7 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 			}
 			code << ";";
 		}
+		// If Decision
 		else if (temp->type == 5) {
 			std::string validated = "";
 			for (int i = 0; temp->text[i] != '\0'; i++) {
@@ -577,6 +598,7 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 
 		code << "\n";
 
+		// Handling loops
 		if (temp->type == 5) {
 			if (loopflag == 2) {
 				if (temp->down != NULL) {
@@ -634,12 +656,15 @@ struct node* CodeGenerate::traverse_cpp(struct node* temp, int level) {
 	return run;
 }
 
+// If Python is selected
 struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
-	int loopflag = -1;
-	int nl = 1;
+	int loopflag = -1;   // Type of loop
+	int nl = 1;   // Whether put a newline or not
 	node* run = NULL;
+
+	// If connector
 	if (temp->type == 3) {
-		int status = 0;
+		int status = 0;   // flag for whether connector detected earlier
 		for (int i = 0; i < connectors.size(); i++) {
 			if (connectors[i].first == temp->id) {
 				if (connectors[i].second == 0) {
@@ -664,6 +689,7 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 		}
 	}
 	else {
+        // Check whether part of a loop
 		for (int i = 0; i < loops.size(); i++) {
 			if (loops[i].second == temp->id && used[i] == 0) {
 				node* x = nodebyid(first, loops[i].first);
@@ -692,10 +718,12 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 			}
 		}
 
+		// Add Indentation
 		for (int i = 0; i < level; i++) {
 			code << "\t";
 		}
 
+		// If Data
 		if (temp->type == 6) {
 			std::stringstream var(temp->text);
 			std::string word;
@@ -746,11 +774,13 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 				nl = 0;
 			}
 		}
+		// If Terminator
 		else if (temp->type == 7) {
 			if (temp->text == "END" && level > 0) {
 				code << "exit()";
 			}
 		}
+		// If Process
 		else if (temp->type == 4) {
 			std::stringstream str(temp->text);
 			std::string word;
@@ -803,6 +833,7 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 				code << ")";
 			}
 		}
+		// If Decision
 		else if (temp->type == 5) {
 			std::string validated = "";
 			for (int i = 0; temp->text[i] != '\0'; i++) {
@@ -867,6 +898,7 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 			code << "\n";
 		}
 
+		// Handling loops
 		if (temp->type == 5) {
 			if (loopflag == 2) {
 				if (temp->down != NULL) {
@@ -912,6 +944,7 @@ struct node* CodeGenerate::traverse_py(struct node* temp, int level) {
 	return run;
 }
 
+// Find node by id
 struct node* CodeGenerate::nodebyid(struct node* temp, int id) {
 	if (temp->id == id) {
 		return temp;

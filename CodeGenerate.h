@@ -16,18 +16,18 @@ struct node {
 class CodeGenerate {
 public:
 	CodeGenerate(wxString codepath, node* start, int lang_sel);
-	~CodeGenerate();
-	
+
 	std::ofstream code;
-	node* first = nullptr;
 
 private:
-	int codeflag = 0;
-	std::vector<std::pair<int, int>> loops;
-	std::vector<std::pair<int, int>> connectors;
+    node* first = nullptr;   // pointer to the starting node
+	int codeflag = 0;   // whether inside valid nodes
+	std::vector<std::pair<int, int>> loops;   // for storing all loops detected
+	std::vector<std::pair<int, int>> connectors;   // for storing all connectors detected
 	std::vector<int> used;
-	std::vector<std::pair<std::string, int>> variables;
-	//void print(struct node* temp); // for debugging
+	std::vector<std::pair<std::string, int>> variables;   // for storing variables and their types
+
+	//void print(struct node* temp);   // for debugging
 	void markloops(struct node* temp);
 	void find_connectors(struct node* temp);
 	struct node* nodebyid(struct node* temp, int id);

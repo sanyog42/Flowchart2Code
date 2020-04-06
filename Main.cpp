@@ -5,19 +5,26 @@ wxBEGIN_EVENT_TABLE(Main, wxFrame)
 wxEND_EVENT_TABLE()
 
 Main::Main() : wxFrame(nullptr, wxID_ANY, "Flowchart2Code") {
-
-#ifndef __WXOSX__
+// Icons for Windows OS
+#ifdef __WXMSW__
     wxIcon mainicon;
     mainicon.LoadFile("Flowchart2Code.ico", wxBITMAP_TYPE_ICO);
     SetIcon(mainicon);
 #endif
 
+// Icons for Linux OS
+#ifdef __WXGTK__
+    wxIcon mainicon;
+    mainicon.LoadFile("Flowchart2Code.png", wxBITMAP_TYPE_PNG);
+    SetIcon(mainicon);
+#endif
+
     wxMenuBar* menubar = new wxMenuBar;
     wxMenu* fileMenu = new wxMenu;
-    
+
     fileMenu->Append(101, "Quit");
     menubar->Append(fileMenu, "File");
-    
+
     SetMenuBar(menubar);
 
     wxFont font_head = wxFont(26, wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL, false);
@@ -33,7 +40,7 @@ Main::Main() : wxFrame(nullptr, wxID_ANY, "Flowchart2Code") {
     wxStaticText* heading3 = new wxStaticText(this, 503, "Select Input File Location:", wxDefaultPosition, wxDefaultSize);
     wxStaticText* heading4 = new wxStaticText(this, 504, "Select Code File Location:", wxDefaultPosition, wxDefaultSize);
 
-    Main::file = new wxFileDialog(this, "Open Input File", wxEmptyString, wxEmptyString, "JPG files (*.jpg)|*.jpg", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    Main::file = new wxFileDialog(this, "Open Input File", wxEmptyString, wxEmptyString, "JPG files (*.jpg)|*.jpg|PNG files (*.png)|*.png|TIFF files (*.tiff)|*.tiff", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     Main::code = new wxFileDialog(this, "Save Code As", wxEmptyString, wxEmptyString, "C files (*.c)|*.c", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     Main::inputbox = new wxRadioBox(this, 301, "Input Type", wxDefaultPosition, wxDefaultSize, 2, input_type, 2, wxRA_SPECIFY_COLS);
     Main::langbox = new wxRadioBox(this, 302, "Language", wxDefaultPosition, wxDefaultSize, 3, lang, 3, wxRA_SPECIFY_COLS);
@@ -41,18 +48,21 @@ Main::Main() : wxFrame(nullptr, wxID_ANY, "Flowchart2Code") {
     wxButton* guidelines = new wxButton(this, 202, "Guidelines");
     wxButton* choosefile = new wxButton(this, 203, "Select Input File");
     wxButton* choosecode = new wxButton(this, 204, "Select Output File");
-    
+
     gen->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Main::OnCreateCode, this);
     choosefile->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Main::OnChooseInp, this);
     choosecode->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Main::OnChooseCode, this);
     inputbox->Bind(wxEVT_RADIOBOX, &Main::OnInputbox, this);
     langbox->Bind(wxEVT_RADIOBOX, &Main::OnLangbox, this);
     guidelines->Bind(wxEVT_COMMAND_BUTTON_CLICKED, &Main::OnGuidelines, this);
-    
+
+//Problem with setting font style in Linux
+#ifndef __WXGTK__
     heading->SetFont(font_head);
     heading2->SetFont(font_head2);
     heading3->SetFont(font_head3);
     heading4->SetFont(font_head3);
+#endif
 
     sizer->Add(heading, 0, wxALIGN_CENTER | wxUP, 30);
     sizer->Add(heading2, 0, wxALIGN_CENTER | wxDOWN, 30);
@@ -64,13 +74,9 @@ Main::Main() : wxFrame(nullptr, wxID_ANY, "Flowchart2Code") {
     sizer->Add(heading4, 0, wxALIGN_LEFT | wxLEFT, 20);
     sizer->Add(choosecode, 0, wxEXPAND | wxLEFT | wxRIGHT | wxDOWN, 20);
     sizer->Add(gen, 0, wxEXPAND, 0);
-    
+
     sizer->SetSizeHints(this);
-    SetSizer(sizer);   
-}
-
-Main::~Main() {
-
+    SetSizer(sizer);
 }
 
 void Main::OnMenuQuit(wxCommandEvent& evt) {
@@ -82,6 +88,7 @@ void Main::OnCreateCode(wxCommandEvent& evt) {
     Main::filepath = file->GetPath();
     Main::codepath = code->GetPath();
     std::string check1 = std::string(codepath.mb_str());
+    // Check if output file selected or not
     if (check1.empty()) {
         wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Output File Not Selected!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
         dial->ShowModal();
@@ -91,6 +98,7 @@ void Main::OnCreateCode(wxCommandEvent& evt) {
         Main::inp_sel = inputbox->GetSelection();
         std::string path = std::string(filepath.mb_str());
         std::ifstream check(path);
+        // Check if input file selected or not
         if (!check) {
             wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Input File Not Found!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
             dial->ShowModal();
@@ -98,9 +106,13 @@ void Main::OnCreateCode(wxCommandEvent& evt) {
         else {
             if (Main::inp_sel == 0) {
                 imagefile = new img(Main::filepath, Main::codepath, Main::lang_sel);
+                delete imagefile;
+                imagefile = nullptr;
             }
             else if (Main::inp_sel == 1) {
                 xmlfile = new xml(Main::filepath, Main::codepath, Main::lang_sel);
+                delete xmlfile;
+                xmlfile = nullptr;
             }
         }
         check.close();
@@ -110,6 +122,7 @@ void Main::OnCreateCode(wxCommandEvent& evt) {
 
 void Main::OnGuidelines(wxCommandEvent& evt) {
     std::ifstream check("Guidelines.pdf");
+    // Checking the presence of guidelines file
     if (!check) {
         wxMessageDialog* dial = new wxMessageDialog(NULL, wxT("Guidelines File Not Found!"), wxT("Error"), wxOK | wxCENTER | wxICON_ERROR);
         dial->ShowModal();
@@ -134,8 +147,9 @@ void Main::OnChooseCode(wxCommandEvent& evt) {
 void Main::OnInputbox(wxCommandEvent& evt) {
     Main::inp_sel = inputbox->GetSelection();
     Main::file->SetPath("");
+    // Sets file type to search
     if (Main::inp_sel == 0) {
-        Main::file->SetWildcard("JPG files (*.jpg)|*.jpg");
+        Main::file->SetWildcard("JPG files (*.jpg)|*.jpg|PNG files (*.png)|*.png|TIFF files (*.tiff)|*.tiff");
     }
     else {
         Main::file->SetWildcard("XML files (*.xml)|*.xml");
@@ -146,6 +160,7 @@ void Main::OnInputbox(wxCommandEvent& evt) {
 void Main::OnLangbox(wxCommandEvent& evt) {
     Main::lang_sel = langbox->GetSelection();
     Main::code->SetPath("");
+    // Sets file type to save
     if (Main::lang_sel == 0) {
         Main::code->SetWildcard("C files (*.c)|*.c");
     }

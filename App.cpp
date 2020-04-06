@@ -8,16 +8,13 @@
 wxIMPLEMENT_APP(App);
 
 App::App() {
+// For MacOS
 #ifdef __WXOSX__
 	CFURLRef url = CFBundleCopyResourcesDirectoryURL(CFBundleGetMainBundle());
 	char path[PATH_MAX];
 	if (!CFURLGetFileSystemRepresentation(url, true, (UInt8*)path, sizeof(path)) || chdir(path) != 0);
 	CFRelease(url);
 #endif
-}
-
-App::~App() {
-
 }
 
 bool App::OnInit() {
