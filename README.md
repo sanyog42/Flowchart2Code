@@ -24,6 +24,8 @@ Install the same libraries if running a non-Debian based linux using their corre
 After installing the dependecies run the following code to open the application:
 ```./Flowchart2Code```
 
+If still some library are shown missing please install them...
+
 ### Guidelines regarding how input is to be given can be found [here](https://github.com/sanyog42/Flowchart2Code/blob/master/Guidelines.pdf)
 
 ### Link to the Model used: https://github.com/mlcv-ime/faster-rcnn-graphics
